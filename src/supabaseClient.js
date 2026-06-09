@@ -1,7 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 
-// Ambil dari .env (lihat catatan di bawah file)
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
+const url = import.meta.env.VITE_SUPABASE_URL.replace("/rest/v1/", "");
+const key = import.meta.env.VITE_SUPABASE_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient(url, key);

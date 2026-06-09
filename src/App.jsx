@@ -10,6 +10,7 @@ import About from './components/About'
 import Contact from './components/Contact'
 import Footer from './components/Footer'
 import AdminPanel from './AdminPanel'
+import LoadingScreen from './components/LoadingScreen'
 
 function Portfolio() {
   const [paket, setPaket] = useState("")
@@ -21,6 +22,7 @@ function Portfolio() {
 
   return (
     <div className="bg-zinc-950 text-zinc-400">
+      <LoadingScreen />
       <Navbar />
       <Hero />
       <Services onPesan={handlePesan} />
