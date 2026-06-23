@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "./supabaseClient";
 import { HARI, BULAN, toKey } from "./utils/dateUtils";
+import { useSite } from "./context/SiteContext";
 
 const UPLOAD_CATEGORIES = ["Pre-wedding", "Wedding", "Wisuda", "Engagement", "Aqiqah", "Event"];
 const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD;
@@ -45,7 +46,33 @@ export default function AdminPanel() {
 }
 
 function AdminDashboard({ onLogout }) {
-  const [tab, setTab] = useState("jadwal");
+  const [tab, setTab]     = useState("jadwal");
+  const [toasts, setToasts] = useState([]);
+
+  useEffect(() => {
+    async function checkUpcoming() {
+      const today = new Date();
+      const in7   = new Date(); in7.setDate(today.getDate() + 7);
+      const todayStr = toKey(today);
+      const in7Str   = toKey(in7);
+
+      const { data } = await supabase.from("booked_dates").select("date, note")
+        .gte("date", todayStr).lte("date", in7Str).order("date");
+
+      if (data?.length) {
+        setToasts(data.map(b => ({
+          id: b.date,
+          msg: `📅 ${prettyDate(b.date)}${b.note ? ` — ${b.note}` : ""}`,
+        })));
+      }
+    }
+    checkUpcoming();
+  }, []);
+
+  function prettyDate(key) {
+    const [y, m, d] = key.split("-");
+    return `${parseInt(d)} ${BULAN[parseInt(m) - 1]} ${y}`;
+  }
 
   return (
     <div className="min-h-screen bg-neutral-950 text-white py-10 px-4">
@@ -55,27 +82,40 @@ function AdminDashboard({ onLogout }) {
           <button onClick={onLogout} className="text-xs text-neutral-400 hover:text-white">Keluar</button>
         </div>
 
-        <div className="flex gap-2 mb-6">
-          <button
-            onClick={() => setTab("jadwal")}
-            className={`flex-1 py-2 rounded text-sm font-medium transition-colors ${
-              tab === "jadwal" ? "bg-amber-500 text-black" : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
-            }`}
-          >
-            Jadwal
-          </button>
-          <button
-            onClick={() => setTab("foto")}
-            className={`flex-1 py-2 rounded text-sm font-medium transition-colors ${
-              tab === "foto" ? "bg-amber-500 text-black" : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
-            }`}
-          >
-            Upload Foto
-          </button>
+        {toasts.length > 0 && (
+          <div className="flex flex-col gap-2 mb-5">
+            {toasts.map(t => (
+              <div key={t.id} className="flex items-start justify-between gap-3 bg-amber-500/10 border border-amber-500/30 rounded-lg px-4 py-3">
+                <p className="text-sm text-amber-300">{t.msg}</p>
+                <button onClick={() => setToasts(prev => prev.filter(x => x.id !== t.id))}
+                  className="text-amber-500 hover:text-amber-300 text-lg leading-none shrink-0">&times;</button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-2 mb-6">
+          {[
+            { key: "jadwal",    label: "Jadwal" },
+            { key: "foto",      label: "Upload Foto" },
+            { key: "pengingat", label: "Pengingat" },
+            { key: "setelan",   label: "Setelan" },
+          ].map(({ key, label }) => (
+            <button key={key}
+              onClick={() => setTab(key)}
+              className={`flex-1 py-2 rounded text-sm font-medium transition-colors ${
+                tab === key ? "bg-amber-500 text-black" : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
-        {tab === "jadwal" && <AdminCalendar />}
-        {tab === "foto" && <AdminGallery />}
+        {tab === "jadwal"    && <AdminCalendar />}
+        {tab === "foto"      && <AdminGallery />}
+        {tab === "pengingat" && <AdminPengingat />}
+        {tab === "setelan"   && <AdminSetelan />}
       </div>
     </div>
   );
@@ -427,6 +467,168 @@ function AdminGallery() {
           ))}
         </div>
       </div>
+    </>
+  );
+}
+
+// ── Pengingat ──────────────────────────────────────────────────
+function AdminPengingat() {
+  const [upcoming, setUpcoming] = useState([]);
+  const [loading, setLoading]   = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      const todayStr = toKey(new Date());
+      const { data } = await supabase.from("booked_dates").select("date, note")
+        .gte("date", todayStr).order("date");
+      setUpcoming(data || []);
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  function prettyDate(key) {
+    const [y, m, d] = key.split("-");
+    return `${parseInt(d)} ${BULAN[parseInt(m) - 1]} ${y}`;
+  }
+
+  function daysFrom(dateStr) {
+    const diff = Math.round((new Date(dateStr) - new Date(toKey(new Date()))) / 86400000);
+    if (diff === 0) return "Hari ini";
+    if (diff === 1) return "Besok";
+    return `${diff} hari lagi`;
+  }
+
+  return (
+    <div className="bg-neutral-900 rounded-xl p-5">
+      <h3 className="text-sm font-semibold mb-1">Booking Mendatang</h3>
+      <p className="text-xs text-neutral-500 mb-4">Otomatis dari jadwal yang sudah diisi.</p>
+      {loading && <p className="text-xs text-neutral-500">Memuat...</p>}
+      {!loading && upcoming.length === 0 && (
+        <p className="text-xs text-neutral-500">Tidak ada booking mendatang.</p>
+      )}
+      <div className="flex flex-col gap-3">
+        {upcoming.map(b => (
+          <div key={b.date} className="bg-neutral-800 rounded-lg p-4 flex justify-between items-start gap-3">
+            <div>
+              <p className="text-amber-400 text-xs font-semibold mb-1">{prettyDate(b.date)}</p>
+              <p className="text-sm text-neutral-200 whitespace-pre-wrap">{b.note || <span className="text-neutral-500">Tanpa catatan</span>}</p>
+            </div>
+            <span className="text-xs text-neutral-400 shrink-0 bg-neutral-700 px-2 py-1 rounded">
+              {daysFrom(b.date)}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Setelan ────────────────────────────────────────────────────
+function AdminSetelan() {
+  const site = useSite();
+  const [subTab, setSubTab]   = useState("kontak");
+  const [saving, setSaving]   = useState(false);
+  const [saved, setSaved]     = useState(false);
+  const [contact, setContact] = useState({ ...site.contact });
+  const [services, setServices] = useState(JSON.parse(JSON.stringify(site.services)));
+
+  async function saveSection(key, data) {
+    setSaving(true);
+    const { data: row } = await supabase.from("site_settings").select("settings").eq("id", 1).single();
+    const current = row?.settings || {};
+    await supabase.from("site_settings").update({ settings: { ...current, [key]: data } }).eq("id", 1);
+    setSaving(false); setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+    site.refresh();
+  }
+
+  function updatePkg(catIdx, pkgIdx, field, value) {
+    setServices(prev => {
+      const next = JSON.parse(JSON.stringify(prev));
+      next[catIdx].packages[pkgIdx][field] = value;
+      return next;
+    });
+  }
+
+  const SaveBtn = () => (
+    <button onClick={() => subTab === "kontak" ? saveSection("contact", contact) : saveSection("services", services)}
+      disabled={saving}
+      className="mt-2 w-full py-2 rounded bg-amber-500 text-black font-semibold hover:bg-amber-400 disabled:opacity-50 transition-colors text-sm">
+      {saving ? "Menyimpan..." : saved ? "Tersimpan ✓" : "Simpan"}
+    </button>
+  );
+
+  return (
+    <>
+      <div className="flex gap-2 mb-5">
+        {[{ key: "kontak", label: "Kontak" }, { key: "paket", label: "Paket" }].map(({ key, label }) => (
+          <button key={key} onClick={() => setSubTab(key)}
+            className={`flex-1 py-2 rounded text-sm font-medium transition-colors ${
+              subTab === key ? "bg-amber-500 text-black" : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+            }`}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {subTab === "kontak" && (
+        <div className="bg-neutral-900 rounded-xl p-5 flex flex-col gap-4">
+          {[
+            { label: "WhatsApp (angka saja)", key: "whatsapp", placeholder: "6282213723022" },
+            { label: "Instagram",             key: "instagram", placeholder: "@mizwar_films" },
+            { label: "Email",                 key: "email",     placeholder: "mizwar797@gmail.com" },
+          ].map(({ label, key, placeholder }) => (
+            <div key={key}>
+              <span className="text-xs text-neutral-400 block mb-1">{label}</span>
+              <input value={contact[key] || ""} onChange={e => setContact(c => ({ ...c, [key]: e.target.value }))}
+                placeholder={placeholder}
+                className="w-full bg-neutral-800 rounded px-3 py-2 text-sm outline-none text-white" />
+            </div>
+          ))}
+          <SaveBtn />
+        </div>
+      )}
+
+      {subTab === "paket" && (
+        <div className="flex flex-col gap-6">
+          {services.map((svc, catIdx) => (
+            <div key={catIdx} className="bg-neutral-900 rounded-xl p-5">
+              <h3 className="text-sm font-semibold text-amber-400 mb-4 uppercase tracking-widest">{svc.category}</h3>
+              <div className="flex flex-col gap-5">
+                {svc.packages.map((pkg, pkgIdx) => (
+                  <div key={pkgIdx} className="border border-neutral-800 rounded-lg p-4 flex flex-col gap-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <span className="text-xs text-neutral-400 block mb-1">Nama Paket</span>
+                        <input value={pkg.name}
+                          onChange={e => updatePkg(catIdx, pkgIdx, "name", e.target.value)}
+                          className="w-full bg-neutral-800 rounded px-3 py-2 text-sm outline-none text-white" />
+                      </div>
+                      <div>
+                        <span className="text-xs text-neutral-400 block mb-1">Harga</span>
+                        <input value={pkg.price}
+                          onChange={e => updatePkg(catIdx, pkgIdx, "price", e.target.value)}
+                          className="w-full bg-neutral-800 rounded px-3 py-2 text-sm outline-none text-white" />
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-xs text-neutral-400 block mb-1">Isi Paket (satu per baris)</span>
+                      <textarea
+                        value={pkg.includes.join("\n")}
+                        onChange={e => updatePkg(catIdx, pkgIdx, "includes", e.target.value.split("\n"))}
+                        rows={4}
+                        className="w-full bg-neutral-800 rounded px-3 py-2 text-sm outline-none resize-none text-white"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+          <SaveBtn />
+        </div>
+      )}
     </>
   );
 }

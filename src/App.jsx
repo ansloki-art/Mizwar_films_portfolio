@@ -11,6 +11,7 @@ import Contact from './components/Contact'
 import Footer from './components/Footer'
 import AdminPanel from './AdminPanel'
 import LoadingScreen from './components/LoadingScreen'
+import { SiteProvider } from './context/SiteContext'
 
 function Portfolio() {
   const [paket, setPaket] = useState("")
@@ -38,11 +39,13 @@ function Portfolio() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Portfolio />} />
-        <Route path="/admin" element={<AdminPanel />} />
-      </Routes>
-    </BrowserRouter>
+    <SiteProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Portfolio />} />
+          <Route path="/admin" element={<AdminPanel />} />
+        </Routes>
+      </BrowserRouter>
+    </SiteProvider>
   )
 }

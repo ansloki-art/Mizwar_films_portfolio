@@ -1,4 +1,10 @@
+import { useSite } from '../context/SiteContext'
+
 export default function Contact() {
+  const { contact } = useSite();
+  const waNum = (contact.whatsapp || "").replace(/\D/g, "");
+  const igHandle = (contact.instagram || "").replace("@", "");
+
   return (
     <section id="contact" className="py-24 scroll-mt-24">
       <div className="max-w-5xl mx-auto px-6 text-center">
@@ -14,30 +20,26 @@ export default function Contact() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-          <a
-            href="https://wa.me/+6282213723022"  
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-lg bg-white text-zinc-950 px-6 py-3 text-sm font-medium hover:bg-zinc-200 transition-colors duration-200 w-full sm:w-auto"
-          >
-            WhatsApp
-          </a>
-          <a
-            href="https://instagram.com/mizwar_films"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-lg border border-zinc-700 text-zinc-200 px-6 py-3 text-sm font-medium hover:border-zinc-400 transition-colors duration-200 w-full sm:w-auto"
-          >
-            Instagram
-          </a>
+          {waNum && (
+            <a href={`https://wa.me/${waNum}`} target="_blank" rel="noopener noreferrer"
+              className="rounded-lg bg-white text-zinc-950 px-6 py-3 text-sm font-medium hover:bg-zinc-200 transition-colors duration-200 w-full sm:w-auto">
+              WhatsApp
+            </a>
+          )}
+          {igHandle && (
+            <a href={`https://instagram.com/${igHandle}`} target="_blank" rel="noopener noreferrer"
+              className="rounded-lg border border-zinc-700 text-zinc-200 px-6 py-3 text-sm font-medium hover:border-zinc-400 transition-colors duration-200 w-full sm:w-auto">
+              Instagram
+            </a>
+          )}
         </div>
 
-        <a
-          href="mailto:mizwar797@gmail.com"
-          className="text-sm text-zinc-500 hover:text-zinc-300 transition-colors underline underline-offset-4"
-        >
-          Email: Mizwar Films
-        </a>
+        {contact.email && (
+          <a href={`mailto:${contact.email}`}
+            className="text-sm text-zinc-500 hover:text-zinc-300 transition-colors underline underline-offset-4">
+            Email: {contact.email}
+          </a>
+        )}
 
       </div>
     </section>

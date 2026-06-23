@@ -1,6 +1,7 @@
-import { services } from '../data/services'
+import { useSite } from '../context/SiteContext'
 
 export default function Services({ onPesan }) {
+  const { services } = useSite();
   return (
     <section id="services" className="py-24 scroll-mt-24">
       <div className="max-w-5xl mx-auto px-6">
