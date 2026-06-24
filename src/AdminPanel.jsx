@@ -356,7 +356,7 @@ function AdminGallery() {
 
     const { data: { publicUrl } } = supabase.storage.from("reels").getPublicUrl(path);
 
-    const { error: dbErr } = await supabase.from("reels").insert({ url: publicUrl });
+    const { error: dbErr } = await supabase.from("reels").insert({ url: publicUrl, category: "foto", title: "" });
     if (dbErr) {
       setError("Simpan data gagal: " + dbErr.message);
       setUploading(false);
