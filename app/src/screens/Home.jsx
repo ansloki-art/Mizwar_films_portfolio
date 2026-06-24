@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { supabase } from '../supabaseClient'
 
-const photos = [
+const FALLBACK = [
   "wedding-01.jpg", "weddingcolase.jpg",
   "Engagement.jpg", "engagementcolase.jpg",
   "preweddcolase.jpg", "promo-01.jpg",
@@ -9,6 +11,19 @@ const photos = [
 
 export default function Home() {
   const navigate = useNavigate()
+  const [photos, setPhotos] = useState([])
+
+  useEffect(() => {
+    async function load() {
+      const { data } = await supabase.from('reels').select('url').order('created_at', { ascending: false })
+      if (data?.length) {
+        setPhotos(data.map(r => ({ src: r.url, key: r.url })))
+      } else {
+        setPhotos(FALLBACK.map(name => ({ src: `/reels/${name}`, key: name })))
+      }
+    }
+    load()
+  }, [])
 
   return (
     <div className="min-h-svh bg-dark text-cream pb-24">
@@ -28,11 +43,11 @@ export default function Home() {
 
       {/* Gallery Masonry */}
       <div className="px-3 columns-2 md:columns-4 gap-3 space-y-3">
-        {photos.map(name => (
+        {photos.map(p => (
           <img
-            key={name}
-            src={`/reels/${name}`}
-            alt={name}
+            key={p.key}
+            src={p.src}
+            alt=""
             loading="lazy"
             className="w-full rounded-xl break-inside-avoid"
           />
