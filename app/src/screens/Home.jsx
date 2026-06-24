@@ -30,7 +30,7 @@ export default function Home() {
 
       {/* Hero */}
       <div className="flex flex-col items-center justify-center px-6 pt-16 pb-10 text-center">
-        <img src="/logo.png" alt="Mizwar Films" className="w-20 h-20 object-contain mb-4 rounded-full bg-black" />
+        <img src="/logo.png" alt="Mizwar Films" className="w-32 h-32 object-contain mb-4 rounded-full bg-black" />
         <h1 className="text-3xl font-bold tracking-widest uppercase mb-1">Mizwar Films</h1>
         <p className="text-cream/50 text-xs tracking-widest uppercase mb-6">Cinematography & Photography</p>
         <button
