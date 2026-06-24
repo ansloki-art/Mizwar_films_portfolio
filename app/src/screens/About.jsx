@@ -1,12 +1,14 @@
+import { useSite } from '../context/SiteContext'
+
 export default function About() {
+  const { contact } = useSite()
+
   const contacts = [
     { label: 'Lokasi',    value: 'Lhokseumawe, Aceh' },
-    { label: 'Instagram', value: '@mizwar_films', href: 'https://www.instagram.com/mizwar_films' },
-    { label: 'WhatsApp',  value: '082213723022', href: 'https://wa.me/6282213723022' },
-    { label: 'Email',     value: 'mizwar797@gmail.com', href: 'mailto:mizwar797@gmail.com' },
+    { label: 'Instagram', value: contact.instagram, href: `https://www.instagram.com/${contact.instagram.replace('@', '')}` },
+    { label: 'WhatsApp',  value: `0${contact.whatsapp.slice(2)}`, href: `https://wa.me/${contact.whatsapp}` },
+    { label: 'Email',     value: contact.email, href: `mailto:${contact.email}` },
   ]
-
-  const bio = 'Tim videografer & fotografer profesional berbasis di Lhokseumawe, Aceh. Mengabadikan setiap momen dengan sentuhan sinematik.'
 
   return (
     <div className="min-h-svh bg-dark text-cream pb-24">
@@ -21,7 +23,7 @@ export default function About() {
         <p className="text-xs tracking-widest uppercase text-brand mb-2">Tentang Saya</p>
         <h2 className="text-2xl font-bold mb-4">Sosok Di Balik Lensa</h2>
         <div className="w-12 h-px bg-brand mx-auto mb-6 opacity-60" />
-        <p className="text-cream/60 text-sm leading-relaxed">{bio}</p>
+        <p className="text-cream/60 text-sm leading-relaxed">Tim videografer & fotografer profesional berbasis di Lhokseumawe, Aceh. Mengabadikan setiap momen dengan sentuhan sinematik.</p>
       </div>
 
       {/* Contact */}

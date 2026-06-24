@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { SiteProvider } from './context/SiteContext'
 import Home from './screens/Home'
 import Packages from './screens/Packages'
 import Booking from './screens/Booking'
@@ -27,7 +28,9 @@ function Layout() {
 export default function App() {
   return (
     <BrowserRouter>
-      <Layout />
+      <SiteProvider>
+        <Layout />
+      </SiteProvider>
     </BrowserRouter>
   )
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { packages } from '../data/packages'
+import { useSite } from '../context/SiteContext'
 
 const CATEGORIES = [
   { key: "NIKAH_PREWEDDING", label: "💍 Nikah + Prewedding", desc: "Paket foto & video lengkap" },
@@ -13,6 +13,7 @@ const CATEGORIES = [
 export default function Packages() {
   const [active, setActive] = useState("NIKAH_PREWEDDING")
   const navigate = useNavigate()
+  const { packages } = useSite()
 
   return (
     <div className="min-h-svh bg-dark text-cream pb-24">

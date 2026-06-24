@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSite } from '../context/SiteContext'
 
 function ToggleRow({ label, description, value, onChange }) {
   return (
@@ -30,6 +31,7 @@ function Section({ title, children }) {
 
 export default function Settings() {
   const [notif, setNotif] = useState(false)
+  const { contact } = useSite()
 
   async function handleNotifToggle(val) {
     if (val) {
@@ -72,12 +74,12 @@ export default function Settings() {
         </Section>
 
         <Section title="Hubungi Kami">
-          <a href="https://www.instagram.com/mizwar_films" target="_blank" rel="noopener noreferrer"
+          <a href={`https://www.instagram.com/${contact.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
             className="flex items-center justify-between py-4 border-b border-white/10">
             <p className="text-sm text-cream">Instagram</p>
             <span className="text-cream/30 text-xs">@mizwar_films →</span>
           </a>
-          <a href="https://wa.me/6282213723022" target="_blank" rel="noopener noreferrer"
+          <a href={`https://wa.me/${contact.whatsapp}`} target="_blank" rel="noopener noreferrer"
             className="flex items-center justify-between py-4 border-b border-white/10">
             <p className="text-sm text-cream">WhatsApp</p>
             <span className="text-cream/30 text-xs">Chat kami →</span>
