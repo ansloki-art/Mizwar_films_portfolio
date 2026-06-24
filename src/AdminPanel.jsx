@@ -3,7 +3,6 @@ import { supabase } from "./supabaseClient";
 import { HARI, BULAN, toKey } from "./utils/dateUtils";
 import { useSite } from "./context/SiteContext";
 
-const UPLOAD_CATEGORIES = ["Pre-wedding", "Wedding", "Wisuda", "Engagement", "Aqiqah", "Event"];
 const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD;
 
 export default function AdminPanel() {
@@ -319,9 +318,6 @@ function AdminCalendar() {
 function AdminGallery() {
   const [file, setFile]           = useState(null);
   const [preview, setPreview]     = useState(null);
-  const [title, setTitle]         = useState("");
-  const [category, setCategory]   = useState("Wedding");
-  const [filterCat, setFilterCat] = useState("Semua");
   const [uploading, setUploading] = useState(false);
   const [reelsList, setReelsList] = useState([]);
   const [loadingList, setLoadingList] = useState(true);
@@ -360,7 +356,7 @@ function AdminGallery() {
 
     const { data: { publicUrl } } = supabase.storage.from("reels").getPublicUrl(path);
 
-    const { error: dbErr } = await supabase.from("reels").insert({ title, category, url: publicUrl });
+    const { error: dbErr } = await supabase.from("reels").insert({ url: publicUrl });
     if (dbErr) {
       setError("Simpan data gagal: " + dbErr.message);
       setUploading(false);
@@ -369,7 +365,6 @@ function AdminGallery() {
 
     setFile(null);
     setPreview(null);
-    setTitle("");
     await loadReels();
     setUploading(false);
   }
@@ -401,24 +396,6 @@ function AdminGallery() {
           <img src={preview} alt="preview" className="w-full max-h-48 object-contain rounded mb-3 bg-neutral-800" />
         )}
 
-        <label className="block mb-3">
-          <span className="text-xs text-neutral-400 mb-1 block">Judul (opsional)</span>
-          <input
-            type="text" value={title} onChange={(e) => setTitle(e.target.value)}
-            placeholder="Nama klien / event..."
-            className="w-full bg-neutral-800 rounded px-3 py-2 text-sm outline-none"
-          />
-        </label>
-
-        <label className="block mb-4">
-          <span className="text-xs text-neutral-400 mb-1 block">Kategori</span>
-          <select
-            value={category} onChange={(e) => setCategory(e.target.value)}
-            className="w-full bg-neutral-800 rounded px-3 py-2 text-sm outline-none"
-          >
-            {UPLOAD_CATEGORIES.map(c => <option key={c}>{c}</option>)}
-          </select>
-        </label>
 
         {error && <p className="text-red-400 text-xs mb-3">{error}</p>}
 
@@ -433,29 +410,17 @@ function AdminGallery() {
       <div className="bg-neutral-900 rounded-xl p-5">
         <h3 className="text-sm font-semibold mb-3">Foto Tersimpan ({reelsList.length})</h3>
 
-        <div className="flex flex-wrap gap-1.5 mb-4">
-          {["Semua", ...UPLOAD_CATEGORIES].map(c => (
-            <button key={c} onClick={() => setFilterCat(c)}
-              className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                filterCat === c ? "bg-amber-500 text-black" : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
-              }`}>
-              {c}
-            </button>
-          ))}
-        </div>
 
         {loadingList && <p className="text-neutral-500 text-xs">Memuat...</p>}
         {!loadingList && reelsList.length === 0 && (
           <p className="text-neutral-500 text-xs">Belum ada foto yang diupload.</p>
         )}
         <div className="grid grid-cols-2 gap-3">
-          {reelsList.filter(r => filterCat === "Semua" || r.category === filterCat).map((reel) => (
+          {reelsList.map((reel) => (
             <div key={reel.id} className="relative group rounded-lg overflow-hidden bg-neutral-800">
               <img src={reel.url} alt={reel.title} className="w-full aspect-9/16 object-cover" />
               <div className="absolute inset-0 bg-zinc-950/0 group-hover:bg-zinc-950/70 transition-colors duration-200" />
               <div className="absolute inset-0 flex flex-col justify-end p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                <p className="text-xs text-amber-400 mb-0.5">{reel.category}</p>
-                {reel.title && <p className="text-xs text-white mb-1 truncate">{reel.title}</p>}
                 <button
                   onClick={() => handleDelete(reel.id, reel.url)}
                   className="text-xs text-red-400 hover:text-red-300 text-left"
